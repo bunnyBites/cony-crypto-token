@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { token } from "../../../declarations/token";
 
 function Balance() {
   const [principalId, setPrincipalId] = useState("");
-  const [balance, setBalance] = useState("");
+  const [balance, setBalance] = useState("0");
+  const [symbol, setSymbol] = useState("");
 
-  async function handleClick() {
+  const onLoad = async () => {
+    const fetchedSymbol = await token.getSymbol();
+    setSymbol(fetchedSymbol);
+  };
+
+  useEffect(onLoad, []);
+
+  const handleClick = async () => {
     const balance = await token.getBalance(principalId);
     setBalance(balance.toLocaleString());
   }
@@ -31,7 +39,7 @@ function Balance() {
           Check Balance
         </button>
       </p>
-      <p>This account has a balance of {balance}</p>
+      <p>This account has a balance of {balance} {symbol}</p>
     </div>
   );
 }

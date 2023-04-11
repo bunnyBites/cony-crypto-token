@@ -10,16 +10,12 @@ actor Token {
   let balance : Nat = 1000000000;
 
   // our crypto token name
-  let tokenName = "CONY";
+  let symbol = "CONY";
 
   // store the balance of each user (mapped with their principal id)
   let balances = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
 
-  Debug.print(debug_show(balances.size()));
-
-  if (balances.size() == 0) {
-    balances.put(owner, balance);
-  };
+  if (balances.size() == 0) { balances.put(owner, balance); };
 
   public query func getBalance(principalId : Text) : async Nat {
     let preparedPrincipal = Principal.fromText(principalId);
@@ -29,4 +25,8 @@ actor Token {
       case (?result) result;
     };
   };
+
+  public query func getSymbol(): async Text {
+    return symbol;
+  }
 };
