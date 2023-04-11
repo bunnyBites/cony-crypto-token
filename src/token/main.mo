@@ -28,5 +28,16 @@ actor Token {
 
   public query func getSymbol(): async Text {
     return symbol;
+  };
+
+  public shared(message) func claimTokens(): async Text {
+    let caller = message.caller;
+
+    if (balances.get(caller) == null) {
+      balances.put(caller, 10000);
+      return "Success";
+    };
+
+    return "Already Claimed!!";
   }
 };

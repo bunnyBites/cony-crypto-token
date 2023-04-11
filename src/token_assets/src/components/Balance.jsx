@@ -3,7 +3,7 @@ import { token } from "../../../declarations/token";
 
 function Balance() {
   const [principalId, setPrincipalId] = useState("");
-  const [balance, setBalance] = useState("0");
+  const [balance, setBalance] = useState("");
   const [symbol, setSymbol] = useState("");
 
   const onLoad = async () => {
@@ -39,7 +39,7 @@ function Balance() {
           Check Balance
         </button>
       </p>
-      <p>This account has a balance of {balance} {symbol}</p>
+      { (balance !== "") && <p>This account has a balance of {balance} {symbol}</p>}
     </div>
   );
 }
