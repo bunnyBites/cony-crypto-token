@@ -1,4 +1,6 @@
 service : {
+  claimTokens: () -> (text);
   getBalance: (text) -> (nat) query;
   getSymbol: () -> (text) query;
+  transfer: (text, nat) -> (text);
 }

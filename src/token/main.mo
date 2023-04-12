@@ -34,10 +34,33 @@ actor Token {
     let caller = message.caller;
 
     if (balances.get(caller) == null) {
-      balances.put(caller, 10000);
-      return "Success";
+      return await transfer(Principal.toText(caller), 10000);
     };
 
     return "Already Claimed!!";
+  };
+
+  public shared(message) func transfer(toPrincipalId: Text, amountToBeTransfered: Nat): async Text {
+    Debug.print(debug_show(message.caller));
+
+    let preparedToPrincipal = Principal.fromText(toPrincipalId);
+    let balanceOfTheSender = await getBalance(Principal.toText(message.caller));
+
+    if (toPrincipalId == Principal.toText(message.caller)) {
+      return "Sender and Reciever are same!!";
+    };
+
+    if (balanceOfTheSender > amountToBeTransfered) {
+      // update the sender balance
+      balances.put(message.caller, (balanceOfTheSender - amountToBeTransfered));
+
+      // update the reciever balance
+      let balanceOfTheReciever = await getBalance(toPrincipalId);
+      balances.put(preparedToPrincipal, (balanceOfTheReciever + amountToBeTransfered));
+
+      return "Success";
+    };
+
+    return "Insufficient balance";
   }
 };
