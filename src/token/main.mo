@@ -1,6 +1,7 @@
 import Principal "mo:base/Principal";
 import HashMap "mo:base/HashMap";
 import Debug "mo:base/Debug";
+import Iter "mo:base/Iter";
 
 actor Token {
   // get the principal
@@ -12,37 +13,37 @@ actor Token {
   // our crypto token name
   let symbol = "CONY";
 
-  // store the balance of each user (mapped with their principal id)
-  let balances = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
+  private stable var balanceArr : [(Principal, Nat)] = [];
 
-  if (balances.size() == 0) { balances.put(owner, balance); };
+  // store the balance of each user (mapped with their principal id)
+  let balanceHash = HashMap.fromIter<Principal, Nat>(balanceArr.vals(), 1, Principal.equal, Principal.hash);
+
+  if (balanceHash.size() == 0) { balanceHash.put(owner, balance) };
 
   public query func getBalance(principalId : Text) : async Nat {
     let preparedPrincipal = Principal.fromText(principalId);
 
-    return switch (balances.get(preparedPrincipal)) {
+    return switch (balanceHash.get(preparedPrincipal)) {
       case null 0;
       case (?result) result;
     };
   };
 
-  public query func getSymbol(): async Text {
+  public query func getSymbol() : async Text {
     return symbol;
   };
 
-  public shared(message) func claimTokens(): async Text {
+  public shared (message) func claimTokens() : async Text {
     let caller = message.caller;
 
-    if (balances.get(caller) == null) {
+    if (balanceHash.get(caller) == null) {
       return await transfer(Principal.toText(caller), 10000);
     };
 
     return "Already Claimed!!";
   };
 
-  public shared(message) func transfer(toPrincipalId: Text, amountToBeTransfered: Nat): async Text {
-    Debug.print(debug_show(message.caller));
-
+  public shared (message) func transfer(toPrincipalId : Text, amountToBeTransfered : Nat) : async Text {
     let preparedToPrincipal = Principal.fromText(toPrincipalId);
     let balanceOfTheSender = await getBalance(Principal.toText(message.caller));
 
@@ -52,15 +53,23 @@ actor Token {
 
     if (balanceOfTheSender > amountToBeTransfered) {
       // update the sender balance
-      balances.put(message.caller, (balanceOfTheSender - amountToBeTransfered));
+      balanceHash.put(message.caller, (balanceOfTheSender - amountToBeTransfered));
 
       // update the reciever balance
       let balanceOfTheReciever = await getBalance(toPrincipalId);
-      balances.put(preparedToPrincipal, (balanceOfTheReciever + amountToBeTransfered));
+      balanceHash.put(preparedToPrincipal, (balanceOfTheReciever + amountToBeTransfered));
 
       return "Success";
     };
 
     return "Insufficient balance";
-  }
+  };
+
+  system func preupgrade() {
+    balanceArr := Iter.toArray(balanceHash.entries());
+  };
+
+  system func postupgrade() {
+    balanceArr := [];
+  };
 };
